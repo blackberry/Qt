@@ -45,7 +45,7 @@
 #include <QtOpenGL/QtOpenGL>
 #include "tst_qglthreads.h"
 
-#ifdef Q_OS_SYMBIAN
+#if defined(Q_OS_SYMBIAN) || defined(Q_OS_QNX)
 #include <unistd.h> // for usleep
 #define RUNNING_TIME 2000 // save GPU mem by running shorter time.
 #else

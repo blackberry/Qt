@@ -46,6 +46,7 @@
 #include <QtCore/QFile>
 
 #include "private/qfsfileengine_p.h"
+#include "private/qfilesystemengine_p.h"
 #include "../../../../shared/filesystem.h"
 
 class qfileinfo : public QObject
@@ -74,11 +75,11 @@ void qfileinfo::cleanupTestCase()
 void qfileinfo::canonicalFileNamePerformance()
 {
     QString appPath = QCoreApplication::applicationFilePath();
-    QFSFileEnginePrivate::canonicalized(appPath); // warmup
-    QFSFileEnginePrivate::canonicalized(appPath); // more warmup
+    QFileSystemEngine::slowCanonicalized(appPath); // warmup
+    QFileSystemEngine::slowCanonicalized(appPath); // more warmup
     QBENCHMARK {
         for (int i = 0; i < 5000; i++) {
-            QFSFileEnginePrivate::canonicalized(appPath);
+            QFileSystemEngine::slowCanonicalized(appPath);
         }
     }
 }

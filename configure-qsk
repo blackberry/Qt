@@ -1,0 +1,94 @@
+#!/bin/bash
+
+function usage() {
+    echo "USAGE: $0 x86"
+    echo "USAGE: $0 arm {v7le|a9}"
+    exit
+}
+
+if [ "$1" == "arm" ]; then
+    if [ "$2" == "v7le" ] || [ "$2" == "a9" ]; then
+        CPUDIR="armle-v7"
+        CPU="armv7le"
+    else
+        usage
+    fi
+elif [ "$1" == "x86" ]; then
+    CPUDIR="x86"
+    CPU="x86"
+else
+    usage
+fi
+
+if [ "$QCONF_OVERRIDE" != "" ]; then
+    cp -p $QCONF_OVERRIDE /tmp/owbqsk$$.mk
+    echo "all:" >>/tmp/owbqsk$$.mk
+    echo '	echo $(INSTALL_ROOT_nto)' >>/tmp/owbqsk$$.mk
+    STAGE_DIR=`make -s -f /tmp/owbqsk$$.mk`
+    rm /tmp/owbqsk$$.mk
+fi
+
+if [ "$STAGE_DIR" == "" ]; then
+    STAGE_DIR="`pwd`/stage/nto"
+    echo "Staging directory could not be determined. Using: $STAGE_DIR"
+else
+    echo "Using staging directory: $STAGE_DIR"
+fi
+
+INSTALL_ROOT=$STAGE_DIR
+
+if [ ! -z "$USE_NDK_ONLY" ] ; then
+    # Can't unset a qmake variable with -qm but assigning to an
+    # empty string is good enough for the isEmpty() function.
+    STAGE_DIR=
+    echo "Using only NDK headers and libraries"
+fi
+
+if [ ! -z "$USE_ICECC" ] ; then
+    USE_MKSPEC=unsupported/blackberry-$CPU-icecc
+    echo "Using icecream for distributed compiling"
+else
+    USE_MKSPEC=unsupported/blackberry-$CPU-g++
+fi
+
+if [ ! -z "$BUILD_TESTS" ] ; then
+    EXTRAOPTS="$EXTRAOPTS -developer-build"
+    echo "Developer build enabled for testing"
+fi
+
+echo Extra configure options: $EXTRAOPTS
+
+# Use GLES1 for simulator and GLES2 for device
+# TODO: Remove this when simulator supports GLES2
+if [ "CPU" == "x86" ]; then
+  GL_VERSION="es1"
+  echo "Using OpenGL ES 1.0"
+else
+  GL_VERSION="es2"
+  echo "Using OpenGL ES 2.0"
+fi
+
+./configure \
+    -opensource \
+    -confirm-license \
+    -qpa \
+    -fontconfig \
+    -iconv \
+    -shared \
+    -release \
+    -xplatform $USE_MKSPEC \
+    -little-endian \
+    -arch $1 \
+    -no-largefile \
+    -nomake examples \
+    -xmlpatterns \
+    -no-webkit \
+    -no-neon \
+    -no-rpath \
+    -opengl $GL_VERSION \
+    -prefix-install \
+    -prefix $INSTALL_ROOT/$CPUDIR/usr/lib/qt4 \
+    -headerdir $INSTALL_ROOT/usr/include/qt4 \
+    -qm QNX_STAGE=$STAGE_DIR \
+    -qm QNX_TARGET=$QNX_TARGET \
+    $EXTRAOPTS

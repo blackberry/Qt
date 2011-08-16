@@ -218,3 +218,5 @@ win32:SUBDIRS -= qtextpiecetable
 symbian:SUBDIRS -= \
     qsystemtrayicon \
 
+blackberry-*:SUBDIRS -= \
+    qtipc \

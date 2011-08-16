@@ -553,4 +553,9 @@ bool QAbstractEventDispatcher::filterEvent(void *message)
     \sa awake()
 */
 
+int QAbstractEventDispatcher::processExtraEvents(QEventLoop::ProcessEventsFlags flags)
+{
+  return 0;
+}
+
 QT_END_NAMESPACE

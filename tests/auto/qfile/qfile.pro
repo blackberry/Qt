@@ -5,6 +5,6 @@ wince*|symbian:{
   SUBDIRS = test stdinprocess
 }
 
-!symbian:SUBDIRS += largefile
+!symbian{!blackberry*:SUBDIRS += largefile}
 
 CONFIG += parallel_test

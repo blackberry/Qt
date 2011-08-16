@@ -198,6 +198,36 @@ QEventDispatcherQPA::QEventDispatcherQPA(QObject *parent)
 QEventDispatcherQPA::~QEventDispatcherQPA()
 { }
 
+int QEventDispatcherQPA::processExtraEvents(QEventLoop::ProcessEventsFlags flags)
+{
+  Q_D(QEventDispatcherQPA);
+
+  int nevents = 0;
+
+  while (!d->interrupt) {        // also flushes output buffer ###can be optimized
+    QWindowSystemInterfacePrivate::WindowSystemEvent *event;
+    if (!(flags & QEventLoop::ExcludeUserInputEvents)
+	&& QWindowSystemInterfacePrivate::windowSystemEventsQueued() > 0) {
+      // process a pending user input event
+      event = QWindowSystemInterfacePrivate::getWindowSystemEvent();
+      if (!event)
+	break;
+    } else {
+      break;
+    }
+    
+    if (filterEvent(event)) {
+      delete event;
+      continue;
+    }
+    nevents++;
+    
+    QApplicationPrivate::processWindowSystemEvent(event);
+    delete event;
+  }
+  return nevents;
+}
+
 bool QEventDispatcherQPA::processEvents(QEventLoop::ProcessEventsFlags flags)
 {
     Q_D(QEventDispatcherQPA);
@@ -212,41 +242,8 @@ bool QEventDispatcherQPA::processEvents(QEventLoop::ProcessEventsFlags flags)
         }
     }
 
-    int nevents = 0;
-
     // handle gui and posted events
-    d->interrupt = false;
-    QApplication::sendPostedEvents();
-
-    while (!d->interrupt) {        // also flushes output buffer ###can be optimized
-        QWindowSystemInterfacePrivate::WindowSystemEvent *event;
-        if (!(flags & QEventLoop::ExcludeUserInputEvents)
-            && QWindowSystemInterfacePrivate::windowSystemEventsQueued() > 0) {
-            // process a pending user input event
-            event = QWindowSystemInterfacePrivate::getWindowSystemEvent();
-            if (!event)
-                break;
-        } else {
-            break;
-        }
-
-        if (filterEvent(event)) {
-            delete event;
-            continue;
-        }
-        nevents++;
-
-        QApplicationPrivate::processWindowSystemEvent(event);
-        delete event;
-    }
-
-    if (!d->interrupt) {
-        if (QEventDispatcherUNIX::processEvents(flags)) {
-            QEventDispatcherUNIX::processEvents(flags);
-            return true;
-        }
-    }
-    return (nevents > 0);
+    return QEventDispatcherUNIX::processEvents(flags);
 }
 
 bool QEventDispatcherQPA::hasPendingEvents()
