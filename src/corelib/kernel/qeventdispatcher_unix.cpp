@@ -292,6 +292,7 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
         }
         ++nevents;
     }
+    nevents += q->processExtraEvents(flags);
 
     // activate socket notifiers
     if (! (flags & QEventLoop::ExcludeSocketNotifiers) && nsel > 0 && sn_highest >= 0) {

@@ -609,6 +609,9 @@ void tst_QFont::lastResortFont()
     // ...if absolutely no font is found. Just as ducumented for QFont::lastResortFont().
     // This happens on our CI machines which run QWS autotests.
 #endif
+#ifdef Q_WS_QPA
+    QSKIP("QFont::lastResortFont() always aborts with qFatal() on QPA", SkipAll);
+#endif
     QFont font;
     QVERIFY(!font.lastResortFont().isEmpty());
 }

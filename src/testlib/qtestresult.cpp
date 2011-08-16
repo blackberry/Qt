@@ -243,7 +243,7 @@ bool QTestResult::verify(bool statement, const char *statementStr,
         QTestLog::info(msg, file, line);
     }
 
-    QTest::qt_snprintf(msg, 1024, "'%s' returned FALSE. (%s)", statementStr, description);
+    QTest::qt_snprintf(msg, 1024, "'%s' returned FALSE. (%s)", statementStr, description?description:"(NULL)");
 
     return checkStatement(statement, msg, file, line);
 }

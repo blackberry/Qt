@@ -582,6 +582,8 @@ void qt_init(QApplicationPrivate *priv, int type)
     qApp->setObjectName(appName);
 
 #ifndef QT_NO_QWS_INPUTMETHODS
+    // We should only set the dummy input context if a plugin has not set its own.
+    if (!qApp->inputContext())
         qApp->setInputContext(new QDummyInputContext(qApp));
 #endif
 }

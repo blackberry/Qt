@@ -1071,6 +1071,13 @@ void tst_QFileInfo::fileTimes()
 #ifdef Q_OS_SYMBIAN
         QEXPECT_FAIL("simple", "Symbian implementation of stat doesn't return read time right", Abort);
 #endif
+#ifdef Q_OS_QNX
+        QEXPECT_FAIL("simple", "Playbook implementation of stat doesn't return read time right", Continue);
+        QEXPECT_FAIL("longfile", "Playbook implementation of stat doesn't return read time right", Continue);
+        QEXPECT_FAIL("longfile absolutepath", "Playbook implementation of stat doesn't return read time right", Continue);
+#endif
+
+    // This is not supported on the playbook.
     QVERIFY(fileInfo.lastRead() > beforeRead);
     QVERIFY(fileInfo.lastModified() > beforeWrite);
     QVERIFY(fileInfo.lastModified() < beforeRead);

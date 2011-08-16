@@ -441,7 +441,19 @@ void QWidgetPrivate::hide_sys()
 
 void QWidgetPrivate::setMaxWindowState_helper()
 {
-    setFullScreenSize_helper(); //### decoration size
+    //### This was changed to use the available geometry as a maximized window would fit
+    //    on the desktop in the avialble area (some space is used up by task bar, system menu
+    //    etc. as opposed to the fullscreen geometry which would be the entire screen.
+    Q_Q(QWidget);
+
+    const uint old_state = data.in_set_window_state;
+    data.in_set_window_state = 1;
+
+    const QRect desktop = qApp->desktop()->availableGeometry(qApp->desktop()->screenNumber(q));
+    q->move(desktop.topLeft());
+    q->resize(desktop.size());
+
+    data.in_set_window_state = old_state;
 }
 
 void QWidgetPrivate::setFullScreenSize_helper()

@@ -325,8 +325,13 @@ QString QWindowsLocalCodec::convertToUnicode(const char *chars, int length, Conv
             while (mblen > 1  && !(mb[mblen-1]))
                 mblen--;
             //check whether,  we hit an invalid character in the middle
-            if ((mblen <= 1) || (remainingChars && state_data))
+            if ((mblen <= 1) || (remainingChars && state_data)) {
+                // ERROR_NO_UNICODE_TRANSLATION may get set after ERROR_INSUFFICIENT_BUFFER so be
+                // sure to clean up.
+                if (wc != wc_auto)
+                    delete [] wc;
                 return convertToUnicodeCharByChar(chars, length, state);
+            }
             //Remove the last character and try again...
             state_data = mb[mblen-1];
             remainingChars = 1;
@@ -337,8 +342,13 @@ QString QWindowsLocalCodec::convertToUnicode(const char *chars, int length, Conv
             break;
         }
     }
-    if (len <= 0)
+
+    if (len <= 0) {
+        if (wc != wc_auto)
+            delete [] wc;
+
         return QString();
+    }
     if (wc[len-1] == 0) // len - 1: we don't want terminator
         --len;
 
@@ -413,7 +423,7 @@ QString QWindowsLocalCodec::convertToUnicodeCharByChar(const char *chars, int le
         s.append(QChar(ws[i]));
     delete [] ws;
 #endif
-    delete mbcs;
+    delete [] mbcs;
     return s;
 }
 

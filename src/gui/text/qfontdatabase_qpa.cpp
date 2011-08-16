@@ -103,14 +103,19 @@ static QStringList fallbackFamilies(const QString &family, const QFont::Style &s
     return retList;
 }
 
+static void registerFont(QFontDatabasePrivate::ApplicationFont *fnt);
+
 static void initializeDb()
 {
-    static int initialized = false;
+    QApplicationPrivate::platformIntegration()->fontDatabase()->populateFontDatabase();
 
-    if (!initialized) {
-        //init by asking for the platformfontdb for the first time :)
-        QApplicationPrivate::platformIntegration()->fontDatabase()->populateFontDatabase();
-        initialized = true;
+    QFontDatabasePrivate *db = privateDb();
+    if (db->reregisterAppFonts) {
+        db->reregisterAppFonts = false;
+        for (int i = 0; i < db->applicationFonts.count(); ++i)
+            if (!db->applicationFonts.at(i).families.isEmpty()) {
+                registerFont(&db->applicationFonts[i]);
+            }
     }
 }
 
@@ -264,11 +269,6 @@ QFontDatabase::findFont(int script, const QFontPrivate *fp,
 
     parseFontName(request.family, foundry_name, family_name);
 
-    if (qt_enable_test_font && request.family == QLatin1String("__Qt__Box__Engine__")) {
-        engine =new QTestFontEngine(request.pixelSize);
-        engine->fontDef = request;
-    }
-
     QtFontDesc desc;
     match(script, request, family_name, foundry_name, force_encoding_id, &desc);
     if (desc.family != 0 && desc.foundry != 0 && desc.style != 0) {
@@ -290,7 +290,11 @@ QFontDatabase::findFont(int script, const QFontPrivate *fp,
     }
 
     if (!engine) {
-        if (!request.family.isEmpty()) {
+
+        if (qt_enable_test_font && request.family == QLatin1String("__Qt__Box__Engine__")) {
+            engine =new QTestFontEngine(request.pixelSize);
+            engine->fontDef = request;
+        } else if (!request.family.isEmpty()) {
             QStringList fallbacks = fallbackFamilies(request.family,QFont::Style(request.style),QFont::StyleHint(request.styleHint),QUnicodeTables::Script(script));
             for (int i = 0; i < fallbacks.size(); i++) {
                 QFontDef def = request;

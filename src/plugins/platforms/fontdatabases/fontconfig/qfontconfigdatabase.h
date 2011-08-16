@@ -45,12 +45,24 @@
 #include <QPlatformFontDatabase>
 #include "qbasicunixfontdatabase.h"
 
+#include <fontconfig/fontconfig.h>
+#include <fontconfig/fcfreetype.h>
+
+
+
 class QFontconfigDatabase : public QBasicUnixFontDatabase
 {
 public:
     void populateFontDatabase();
     QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
     QStringList fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const;
+    QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
+
+private:
+    void populateWith(FcFontSet *fonts);
+    void initialize();
+    QString systemLang;
+
 };
 
 #endif // QFONTCONFIGDATABASE_H

@@ -39,6 +39,8 @@
 **
 ****************************************************************************/
 
+#define __STDC_CONSTANT_MACROS
+
 //#define QPROCESS_DEBUG
 #include "qdebug.h"
 

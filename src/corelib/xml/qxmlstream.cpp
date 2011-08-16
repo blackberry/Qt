@@ -1901,13 +1901,22 @@ void QXmlStreamReaderPrivate::parseError()
             error_message += QLatin1String (spell [expected[s]]);
             error_message += QLatin1String("\'");
         }
-        error_message += QXmlStream::tr(", but got \'");
-        error_message += QLatin1String(spell [token]);
-        error_message += QLatin1String("\'");
+
+        if (token < 0) {
+            error_message += QXmlStream::tr(", but got an invalid token");
+        } else {
+            error_message += QXmlStream::tr(", but got \'");
+            error_message += QLatin1String(spell [token]);
+            error_message += QLatin1String("\'");
+        }
     } else {
-        error_message += QXmlStream::tr("Unexpected \'");
-        error_message += QLatin1String(spell [token]);
-        error_message += QLatin1String("\'");
+        if (token < 0) {
+            error_message += QXmlStream::tr("Unexpected invalid token");
+        } else {
+            error_message += QXmlStream::tr("Unexpected \'");
+            error_message += QLatin1String(spell [token]);
+            error_message += QLatin1String("\'");
+        }
     }
     error_message += QLatin1Char('.');
 

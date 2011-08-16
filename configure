@@ -1207,6 +1207,15 @@ while [ "$#" -gt 0 ]; do
             VAL=`echo $1 | sed 's,-R,,'`
         fi
         ;;
+    -qm?*|-qm)
+        VAR="add_qmflags"
+        if [ "$1" = "-qm" ]; then
+            shift
+            VAL="$1"
+        else
+            VAL=`echo $1 | sed 's,-qm,,'`
+        fi
+        ;;
     -l?*)
         VAR="add_link"
         VAL=`echo $1 | sed 's,-l,,'`
@@ -2323,6 +2332,9 @@ while [ "$#" -gt 0 ]; do
         ;;
     add_lpath)
         L_FLAGS="$L_FLAGS -L\"${VAL}\""
+        ;;
+    add_qmflags)
+        QMAKE_VARIABLES="$QMAKE_VARIABLES $VAL"
         ;;
     add_rpath)
         RPATH_FLAGS="$RPATH_FLAGS \"${VAL}\""
@@ -4977,6 +4989,15 @@ if true; then ###[ '!' -f "$outpath/bin/qmake" ];
 fi # Build qmake
 
 #-------------------------------------------------------------------------------
+# set qmake persistent variables
+#-------------------------------------------------------------------------------
+for arg in $QMAKE_VARIABLES; do
+    VAR1=`echo $arg | sed "s,\(.*\)=\(.*\),\1,"`
+    VAR2=`echo $arg | sed "s,\(.*\)=\(.*\),\2,"`
+    $outpath/bin/qmake -set $VAR1 "$VAR2"
+done
+
+#-------------------------------------------------------------------------------
 # tests that need qmake
 #-------------------------------------------------------------------------------
 
@@ -5600,7 +5621,7 @@ fi
 
 # auto-detect iconv(3) support
 if [ "$CFG_ICONV" != "no" ]; then
-    if [ "$PLATFORM_QWS" = "yes" -o "$PLATFORM_QPA" = "yes" ]; then
+    if [ "$PLATFORM_QWS" = "yes" ]; then
 	CFG_ICONV=no
     elif "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" "$OPT_VERBOSE" "$relpath" "$outpath" "config.tests/unix/iconv" "POSIX iconv" $L_FLAGS $I_FLAGS $l_FLAGS $MAC_CONFIG_TEST_COMMANDLINE; then
         CFG_ICONV=yes
@@ -5608,6 +5629,8 @@ if [ "$CFG_ICONV" != "no" ]; then
         CFG_ICONV=sun
     elif "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" "$OPT_VERBOSE" "$relpath" "$outpath" "config.tests/unix/gnu-libiconv" "GNU libiconv" $L_FLAGS $I_FLAGS $l_FLAGS $MAC_CONFIG_TEST_COMMANDLINE; then
         CFG_ICONV=gnu
+    elif "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" "$OPT_VERBOSE" "$relpath" "$outpath" "config.tests/unix/gnu-libiconv-noconst" "GNU libiconv nonconst" $L_FLAGS $I_FLAGS $l_FLAGS $MAC_CONFIG_TEST_COMMANDLINE; then
+        CFG_ICONV=gnu-noconst
     else
         if [ "$CFG_ICONV" = "yes" ] && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
             echo "Iconv support cannot be enabled due to functionality tests!"
@@ -5815,6 +5838,33 @@ if [ "$PLATFORM_X11" = "yes" -o "$PLATFORM_QWS" = "yes" -o "$PLATFORM_QPA" = "ye
 		CFG_PULSEAUDIO=no
             fi
         fi
+    fi
+
+    # auto-detect FontConfig support
+    if [ "$CFG_FONTCONFIG" != "no" ]; then
+    if [ -n "$PKG_CONFIG" ] && $PKG_CONFIG --exists fontconfig --exists freetype2 2>/dev/null; then
+        QT_CFLAGS_FONTCONFIG=`$PKG_CONFIG --cflags fontconfig --cflags freetype2 2>/dev/null`
+        QT_LIBS_FONTCONFIG=`$PKG_CONFIG --libs fontconfig --libs freetype2 2>/dev/null`
+    else
+        QT_CFLAGS_FONTCONFIG=
+        QT_LIBS_FONTCONFIG="-lfreetype -lfontconfig"
+    fi
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/x11/fontconfig "FontConfig" $L_FLAGS $I_FLAGS $l_FLAGS $X11TESTS_FLAGS $QT_CFLAGS_FONTCONFIG $QT_LIBS_FONTCONFIG; then
+	    CFG_FONTCONFIG=yes
+        QMakeVar set QMAKE_CFLAGS_X11 "$QT_CFLAGS_FONTCONFIG \$\$QMAKE_CFLAGS_X11"
+        QMakeVar set QMAKE_LIBS_X11 "$QT_LIBS_FONTCONFIG \$\$QMAKE_LIBS_X11"
+	    CFG_LIBFREETYPE=system
+	else
+	    if [ "$CFG_FONTCONFIG" = "yes" ] && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
+		echo "FontConfig support cannot be enabled due to functionality tests!"
+		echo " Turn on verbose messaging (-v) to $0 to see the final report."
+		echo " If you believe this message is in error you may use the continue"
+		echo " switch (-continue) to $0 to continue."
+		exit 101
+	    else
+		CFG_FONTCONFIG=no
+	    fi
+	fi
     fi
 fi # X11/QWS/Lighthouse
 
@@ -7326,6 +7376,7 @@ fi
 [ "$CFG_ICONV" = "yes" ] && QT_CONFIG="$QT_CONFIG iconv"
 [ "$CFG_ICONV" = "sun" ] && QT_CONFIG="$QT_CONFIG sun-libiconv"
 [ "$CFG_ICONV" = "gnu" ] && QT_CONFIG="$QT_CONFIG gnu-libiconv"
+[ "$CFG_ICONV" = "gnu-noconst" ] && QT_CONFIG="$QT_CONFIG gnu-libiconv-noconst"
 [ "$CFG_GLIB" = "yes" ] && QT_CONFIG="$QT_CONFIG glib"
 [ "$CFG_GSTREAMER" = "yes" ] && QT_CONFIG="$QT_CONFIG gstreamer"
 [ "$CFG_DBUS" = "yes" ] && QT_CONFIG="$QT_CONFIG dbus"
@@ -7488,6 +7539,11 @@ if [ $? != "0" ]; then
 fi
 
 case "$XPLATFORM" in
+    *blackberry*)
+    # We have gcc 4.2.2 on our platform, but you can't get the version from qcc at all
+    # so don't need to check at all.
+	;;
+
     hpux-g++*)
 	# PA-RISC's assembly is too limited
 	# gcc 3.4 on that platform can't build QtXmlPatterns

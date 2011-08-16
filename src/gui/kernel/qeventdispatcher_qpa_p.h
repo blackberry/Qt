@@ -68,6 +68,7 @@ public:
     explicit QEventDispatcherQPA(QObject *parent = 0);
     ~QEventDispatcherQPA();
 
+    int processExtraEvents(QEventLoop::ProcessEventsFlags flags);
     bool processEvents(QEventLoop::ProcessEventsFlags flags);
     bool hasPendingEvents();
 

@@ -31,6 +31,13 @@ unix {
 
                 DEFINES += GNU_LIBICONV
                 !mac:LIBS_PRIVATE *= -liconv
+        } else:contains(QT_CONFIG,gnu-libiconv-noconst) {
+                HEADERS += codecs/qiconvcodec_p.h
+                SOURCES += codecs/qiconvcodec.cpp
+
+                DEFINES += GNU_LIBICONV
+                DEFINES += GNU_LIBICONV_NOCONST
+                !mac:LIBS_PRIVATE *= -liconv
         } else:contains(QT_CONFIG,sun-libiconv) {
                 HEADERS += codecs/qiconvcodec_p.h
                 SOURCES += codecs/qiconvcodec.cpp

@@ -219,7 +219,7 @@ QString QIconvCodec::convertToUnicode(const char* chars, int len, ConverterState
     IconvState *state = *pstate;
     size_t inBytesLeft = len;
     // best case assumption, each byte is converted into one UTF-16 character, plus 2 bytes for the BOM
-#ifdef GNU_LIBICONV
+#if defined(GNU_LIBICONV) && !defined(GNU_LIBICONV_NOCONST)
     // GNU doesn't disagree with POSIX :/
     const char *inBytes = chars;
 #else
@@ -286,7 +286,12 @@ QString QIconvCodec::convertToUnicode(const char* chars, int len, ConverterState
         }
     } while (inBytesLeft != 0);
 
-    QString s = utf16Codec->toUnicode(ba.constData(), ba.size() - outBytesLeft);
+    QString s;
+    if(convState) {
+        s = utf16Codec->toUnicode(ba.constData(), ba.size() - outBytesLeft, &state->internalState);
+    } else {
+        s = utf16Codec->toUnicode(ba.constData(), ba.size() - outBytesLeft);
+    }
 
     if (convState) {
         convState->invalidChars = invalidCount;
@@ -314,7 +319,7 @@ static bool setByteOrder(iconv_t cd)
     size_t outBytesLeft = sizeof buf;
     size_t inBytesLeft = sizeof bom;
 
-#if defined(GNU_LIBICONV)
+#if defined(GNU_LIBICONV) && !defined(GNU_LIBICONV_NOCONST)
     const char **inBytesPtr = const_cast<const char **>(&inBytes);
 #else
     char **inBytesPtr = &inBytes;
@@ -334,7 +339,7 @@ QByteArray QIconvCodec::convertFromUnicode(const QChar *uc, int len, ConverterSt
     char *outBytes;
     size_t inBytesLeft;
 
-#if defined(GNU_LIBICONV)
+#if defined(GNU_LIBICONV) && !defined(GNU_LIBICONV_NOCONST)
     const char **inBytesPtr = const_cast<const char **>(&inBytes);
 #else
     char **inBytesPtr = &inBytes;
@@ -462,8 +467,13 @@ iconv_t QIconvCodec::createIconv_t(const char *to, const char *from)
 
     iconv_t cd = (iconv_t) -1;
 #if defined(__GLIBC__) || defined(GNU_LIBICONV)
+#if defined(Q_OS_QNX)
+    // on QNX the default locale is UTF-8, and an empty string will case iconv_open to fail
+    static const char empty_codeset[] = "UTF-8";
+#else
     // both GLIBC and libgnuiconv will use the locale's encoding if from or to is an empty string
     static const char empty_codeset[] = "";
+#endif
     const char *codeset = empty_codeset;
     cd = iconv_open(to ? to : codeset, from ? from : codeset);
 #else

@@ -49,6 +49,9 @@
 #include <QtGui/private/qapplication_p.h>
 #include <QtGui/QPlatformScreen>
 
+#undef QT_NO_FREETYPE
+#undef QT_NO_FONTCONFIG
+
 #include <QtGui/private/qfontengine_ft_p.h>
 #include <QtGui/private/qfontengine_p.h>
 
@@ -58,6 +61,7 @@
 #include FT_TRUETYPE_TABLES_H
 
 #include <fontconfig/fontconfig.h>
+#include <fontconfig/fcfreetype.h>
 
 #define SimplifiedChineseCsbBit 18
 #define TraditionalChineseCsbBit 20
@@ -293,10 +297,8 @@ static const char *getFcFamilyForStyleHint(const QFont::StyleHint style)
     return stylehint;
 }
 
-void QFontconfigDatabase::populateFontDatabase()
+void QFontconfigDatabase::populateWith(FcFontSet *fonts)
 {
-    FcFontSet  *fonts;
-
     QString familyName;
     FcChar8 *value = 0;
     int weight_value;
@@ -307,29 +309,6 @@ void QFontconfigDatabase::populateFontDatabase()
     FcChar8 *foundry_value;
     FcBool scalable;
     FcBool antialias;
-
-    {
-        FcObjectSet *os = FcObjectSetCreate();
-        FcPattern *pattern = FcPatternCreate();
-        const char *properties [] = {
-            FC_FAMILY, FC_WEIGHT, FC_SLANT,
-            FC_SPACING, FC_FILE, FC_INDEX,
-            FC_LANG, FC_CHARSET, FC_FOUNDRY, FC_SCALABLE, FC_PIXEL_SIZE, FC_WEIGHT,
-            FC_WIDTH,
-#if FC_VERSION >= 20297
-            FC_CAPABILITY,
-#endif
-            (const char *)0
-        };
-        const char **p = properties;
-        while (*p) {
-            FcObjectSetAdd(os, *p);
-            ++p;
-        }
-        fonts = FcFontList(0, pattern, os);
-        FcObjectSetDestroy(os);
-        FcPatternDestroy(pattern);
-    }
 
     for (int i = 0; i < fonts->nfont; i++) {
         if (FcPatternGetString(fonts->fonts[i], FC_FAMILY, 0, &value) != FcResultMatch)
@@ -424,9 +403,64 @@ void QFontconfigDatabase::populateFontDatabase()
         }
 
         QFont::Stretch stretch = QFont::Unstretched;
-        QPlatformFontDatabase::registerFont(familyName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,writingSystems,fontFile);
+        registerFont(familyName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,writingSystems,fontFile);
 //        qDebug() << familyName << (const char *)foundry_value << weight << style << &writingSystems << scalable << true << pixel_size;
     }
+}
+
+void QFontconfigDatabase::populateFontDatabase()
+{
+    initialize();
+}
+
+void QFontconfigDatabase::initialize()
+{
+    FcFontSet  *fonts;
+
+    QString familyName;
+    FcChar8 *value = 0;
+    int weight_value;
+    int slant_value;
+    int spacing_value;
+    FcChar8 *file_value;
+    int indexValue;
+    FcChar8 *foundry_value;
+    FcBool scalable;
+    FcBool antialias;
+
+    {
+        FcPattern *pattern = FcPatternCreate();
+        FcDefaultSubstitute(pattern);
+        FcChar8 *lang = 0;
+        if (FcPatternGetString(pattern, FC_LANG, 0, &lang) == FcResultMatch)
+            systemLang = QString::fromUtf8((const char *) lang);
+        FcPatternDestroy(pattern);
+    }
+
+    {
+        FcObjectSet *os = FcObjectSetCreate();
+        FcPattern *pattern = FcPatternCreate();
+        const char *properties [] = {
+            FC_FAMILY, FC_WEIGHT, FC_SLANT,
+            FC_SPACING, FC_FILE, FC_INDEX,
+            FC_LANG, FC_CHARSET, FC_FOUNDRY, FC_SCALABLE, FC_PIXEL_SIZE, FC_WEIGHT,
+            FC_WIDTH,
+#if FC_VERSION >= 20297
+            FC_CAPABILITY,
+#endif
+            (const char *)0
+        };
+        const char **p = properties;
+        while (*p) {
+            FcObjectSetAdd(os, *p);
+            ++p;
+        }
+        fonts = FcFontList(0, pattern, os);
+        FcObjectSetDestroy(os);
+        FcPatternDestroy(pattern);
+    }
+
+    populateWith(fonts);
 
     FcFontSetDestroy (fonts);
 
@@ -598,4 +632,106 @@ QStringList QFontconfigDatabase::fallbacksForFamily(const QString family, const 
 //    qDebug() << "fallbackFamilies for:" << family << fallbackFamilies;
 
     return fallbackFamilies;
+}
+
+static FcPattern *queryFont(const FcChar8 *file, const QByteArray &data, int id, FcBlanks *blanks, int *count)
+{
+#if FC_VERSION < 20402
+    Q_UNUSED(data)
+    return FcFreeTypeQuery(file, id, blanks, count);
+#else
+    if (data.isEmpty())
+        return FcFreeTypeQuery(file, id, blanks, count);
+
+    extern FT_Library qt_getFreetype();
+    FT_Library lib = qt_getFreetype();
+
+    FcPattern *pattern = 0;
+
+    FT_Face face;
+    if (!FT_New_Memory_Face(lib, (const FT_Byte *)data.constData(), data.size(), id, &face)) {
+        *count = face->num_faces;
+
+        pattern = FcFreeTypeQueryFace(face, file, id, blanks);
+
+        FT_Done_Face(face);
+    }
+
+    return pattern;
+#endif
+}
+
+
+QStringList QFontconfigDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
+{
+    FcConfig *config = FcConfigGetCurrent();
+    if (!config)
+        return QStringList();
+
+    FcFontSet *set = FcConfigGetFonts(config, FcSetApplication);
+    if (!set) {
+        FcConfigAppFontAddFile(config, (const FcChar8 *)":/non-existent");
+        set = FcConfigGetFonts(config, FcSetApplication); // try again
+        if (!set)
+            return QStringList();
+    }
+
+    QString fileNameForQuery = fileName;
+#if FC_VERSION < 20402
+    QTemporaryFile tmp;
+
+    if (!fontData.isEmpty()) {
+        if (!tmp.open())
+            return QStringList();
+        tmp.write(fontData);
+        tmp.flush();
+        fileNameForQuery = tmp.fileName();
+    }
+#endif
+
+    int id = 0;
+    FcBlanks *blanks = FcConfigGetBlanks(0);
+    int count = 0;
+
+    QStringList families;
+
+    FcPattern *pattern = 0;
+    do {
+        pattern = queryFont((const FcChar8 *)QFile::encodeName(fileNameForQuery).constData(),
+                            fontData, id, blanks, &count);
+        if (!pattern) {
+            return QStringList();
+        }
+
+        FcPatternDel(pattern, FC_FILE);
+        QByteArray cs = fileName.toUtf8();
+        FcPatternAddString(pattern, FC_FILE, (const FcChar8 *) cs.constData());
+
+        FcChar8 *fam = 0, *familylang = 0;
+        int i, n = 0;
+        for (i = 0; ; i++) {
+            if (FcPatternGetString(pattern, FC_FAMILYLANG, i, &familylang) != FcResultMatch)
+                break;
+            QString familyLang = QString::fromUtf8((const char *) familylang);
+            if (familyLang.compare(systemLang, Qt::CaseInsensitive) == 0) {
+                n = i;
+                break;
+            }
+        }
+
+        if (FcPatternGetString(pattern, FC_FAMILY, n, &fam) == FcResultMatch) {
+            QString family = QString::fromUtf8(reinterpret_cast<const char *>(fam));
+            families << family;
+        }
+
+        if (!FcFontSetAdd(set, pattern)) {
+            return QStringList();
+        }
+
+        ++id;
+    } while (pattern && id < count);
+
+    populateWith(set);
+
+    return families;
 }

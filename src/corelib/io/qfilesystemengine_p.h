@@ -121,8 +121,8 @@ public:
 
     static QAbstractFileEngine *resolveEntryAndCreateLegacyEngine(QFileSystemEntry &entry,
                                                                   QFileSystemMetaData &data);
-private:
     static QString slowCanonicalized(const QString &path);
+private:
 #if defined(Q_OS_WIN)
     static void clearWinStatData(QFileSystemMetaData &data);
 #endif

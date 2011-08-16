@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
+
 SUBDIRS = \
         containers-associative \
         containers-sequential \
@@ -11,3 +12,7 @@ SUBDIRS = \
         qstringbuilder \
         qstringlist \
         qvector
+
+blackberry-* {
+    SUBDIRS -= qregexp
+}
