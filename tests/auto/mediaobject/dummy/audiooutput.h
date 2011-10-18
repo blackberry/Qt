@@ -1,0 +1,82 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the test suite of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#ifndef PHONON_DUMMY_AUDIOOUTPUT_H
+#define PHONON_DUMMY_AUDIOOUTPUT_H
+
+#include "backend.h"
+#include <phonon/audiooutputinterface.h>
+#include <phonon/phononnamespace.h>
+
+QT_BEGIN_NAMESPACE
+
+namespace Phonon
+{
+namespace Dummy
+{
+class AudioOutput : public QObject, public AudioOutputInterface
+{
+    Q_OBJECT
+    Q_INTERFACES(Phonon::AudioOutputInterface)
+public:
+    AudioOutput(Backend *backend, QObject *parent);
+    ~AudioOutput();
+
+    qreal volume() const;
+    int outputDevice() const;
+    void setVolume(qreal newVolume);
+    bool setOutputDevice(int newDevice);
+    bool setOutputDevice(const AudioOutputDevice &newDevice);
+
+Q_SIGNALS:
+    void volumeChanged(qreal newVolume);
+    void audioDeviceFailed();
+
+private:
+    qreal m_volumeLevel;
+    int m_device;
+};
+}
+} //namespace Phonon::Dummy
+
+QT_END_NAMESPACE
+
+#endif // PHONON_DUMMY_AUDIOOUTPUT_H
