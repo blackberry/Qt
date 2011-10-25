@@ -46,6 +46,11 @@ void QBBClipboard::setMimeData(QMimeData *data, QClipboard::Mode mode)
         return;
 
     empty_clipboard();
+
+    // If data is null, this is equivalent to clearing the clipboard
+    if (data == 0)
+        return;
+
     QStringList format = data->formats();
     for (int i = 0; i < format.size(); ++i) {
         QString type = format.at(i);
