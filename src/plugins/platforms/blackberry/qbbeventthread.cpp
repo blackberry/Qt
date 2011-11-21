@@ -14,7 +14,7 @@
 **
 ****************************************************************************/
 
-//#define QBBEVENTTHREAD_DEBUG
+#define QBBEVENTTHREAD_DEBUG
 
 #include "qbbeventthread.h"
 #include "qbbkeytranslator.h"
@@ -247,6 +247,19 @@ void QBBEventThread::handleKeyboardEvent(screen_event_t event)
             if (isKeypadKey(cap))
                 qtMod |= Qt::KeypadModifier; // Is this right?
             key = keyTranslator(cap);
+
+            // Some special keys do have a string
+            switch( key ) {
+                case Qt::Key_Backspace:
+                    keyStr = QChar('\b');
+                    break;
+                case Qt::Key_Return:
+                    keyStr = QChar('\n');
+                    break;
+                default:
+                    // No special charcode
+                    break;
+            }
         }
 
         QWindowSystemInterface::handleKeyEvent(QApplication::activeWindow(), type, key, qtMod, keyStr);
