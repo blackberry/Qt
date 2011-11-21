@@ -204,6 +204,8 @@ void QBBWindow::setVisible(bool visible)
         root = root->mParent;
 
     root->updateVisibility(root->mVisible);
+
+    widget()->activateWindow();
 }
 
 void QBBWindow::updateVisibility(bool parentVisible)
