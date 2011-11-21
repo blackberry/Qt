@@ -14,7 +14,7 @@
 **
 ****************************************************************************/
 
-#define QBBEVENTTHREAD_DEBUG
+//#define QBBEVENTTHREAD_DEBUG
 
 #include "qbbeventthread.h"
 #include "qbbkeytranslator.h"
