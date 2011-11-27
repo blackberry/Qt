@@ -8,14 +8,21 @@ function usage() {
 
 if [ "$1" == "arm" ]; then
     if [ "$2" == "v7le" ] || [ "$2" == "a9" ]; then
+        # Shift architecture and cpu off $@
+        shift
+        shift
         CPUDIR="armle-v7"
         CPU="armv7le"
+        ARCH="arm"
     else
         usage
     fi
 elif [ "$1" == "x86" ]; then
+    # Shift arch off $@
+    shift
     CPUDIR="x86"
     CPU="x86"
+    ARCH="x86"
 else
     usage
 fi
@@ -56,6 +63,9 @@ if [ ! -z "$BUILD_TESTS" ] ; then
     echo "Developer build enabled for testing"
 fi
 
+# Pass extra options along
+EXTRAOPTS="$EXTRAOPTS $@"
+
 echo Extra configure options: $EXTRAOPTS
 
 # Use GLES1 for simulator and GLES2 for device
@@ -77,7 +87,7 @@ fi
     -release \
     -xplatform $USE_MKSPEC \
     -little-endian \
-    -arch $1 \
+    -arch $ARCH \
     -no-largefile \
     -nomake examples \
     -xmlpatterns \
