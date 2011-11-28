@@ -8,12 +8,17 @@ function usage() {
 
 if [ "$1" == "arm" ]; then
     if [ "$2" == "v7le" ] || [ "$2" == "a9" ]; then
+        # Shift architecture and cpu off $@
+        shift
+        shift
         CPUDIR="armle-v7"
         CPU="armv7le"
     else
         usage
     fi
 elif [ "$1" == "x86" ]; then
+    # Shift arch off $@
+    shift
     CPUDIR="x86"
     CPU="x86"
 else
@@ -55,6 +60,9 @@ if [ ! -z "$BUILD_TESTS" ] ; then
     EXTRAOPTS="$EXTRAOPTS -developer-build"
     echo "Developer build enabled for testing"
 fi
+
+# Pass extra options along
+EXTRAOPTS="$EXTRAOPTS $@"
 
 ./configure \
     -opensource \
