@@ -13,6 +13,7 @@ if [ "$1" == "arm" ]; then
         shift
         CPUDIR="armle-v7"
         CPU="armv7le"
+        ARCH="arm"
     else
         usage
     fi
@@ -21,6 +22,7 @@ elif [ "$1" == "x86" ]; then
     shift
     CPUDIR="x86"
     CPU="x86"
+    ARCH="x86"
 else
     usage
 fi
@@ -73,7 +75,7 @@ EXTRAOPTS="$EXTRAOPTS $@"
     -release \
     -xplatform $USE_MKSPEC \
     -little-endian \
-    -arch $1 \
+    -arch $ARCH \
     -no-largefile \
     -nomake examples \
     -no-webkit \
