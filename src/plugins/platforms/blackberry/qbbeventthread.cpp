@@ -260,8 +260,12 @@ void QBBEventThread::injectKeyboardEvent(int flags, int sym, int modifiers, int 
 
         if (cap >= 0x20 && cap <= 0x0ff) {
             key = Qt::Key(std::toupper(cap));   // Qt expects the CAP to be upper case.
-            if (flags & KEY_SYM_VALID) {
-                keyStr = QChar(sym);
+            if( qtMod & Qt::ControlModifier ) {
+                keyStr = QChar((int)(key - Qt::Key_A) + 1);
+            } else {
+                if (flags & KEY_SYM_VALID) {
+                    keyStr = QChar(sym);
+                }
             }
         } else if ((cap > 0x0ff && cap < UNICODE_PRIVATE_USE_AREA_FIRST) || cap > UNICODE_PRIVATE_USE_AREA_LAST) {
             key = (Qt::Key)cap;
