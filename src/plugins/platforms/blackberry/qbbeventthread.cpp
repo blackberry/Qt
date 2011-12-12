@@ -256,7 +256,7 @@ void QBBEventThread::injectKeyboardEvent(int flags, int sym, int modifiers, int 
     // Check if the key cap is valid
     if (flags & KEY_CAP_VALID) {
         Qt::Key key;
-        QChar keyStr;
+        QString keyStr;
 
         if (cap >= 0x20 && cap <= 0x0ff) {
             key = Qt::Key(std::toupper(cap));   // Qt expects the CAP to be upper case.
