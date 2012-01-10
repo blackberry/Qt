@@ -403,7 +403,19 @@ void QFontconfigDatabase::populateWith(FcFontSet *fonts)
         }
 
         QFont::Stretch stretch = QFont::Unstretched;
-        registerFont(familyName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,writingSystems,fontFile);
+
+        int spacing = 0;
+        bool fixed = false;
+        bool ignorePitch = false;   // Unused?
+        if (FcPatternGetInteger(fonts->fonts[i], FC_SPACING, 0, &spacing) == FcResultMatch) {
+            fixed = (spacing >= FC_MONO);
+            ignorePitch = false;
+        } else {
+            ignorePitch = true;
+        }
+
+
+        registerFont(familyName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,fixed,writingSystems,fontFile);
 //        qDebug() << familyName << (const char *)foundry_value << weight << style << &writingSystems << scalable << true << pixel_size;
     }
 }
@@ -482,9 +494,9 @@ void QFontconfigDatabase::initialize()
 
 
     while (f->qtname) {
-        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleNormal,QFont::Unstretched,true,true,0,ws,0);
-        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleItalic,QFont::Unstretched,true,true,0,ws,0);
-        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleOblique,QFont::Unstretched,true,true,0,ws,0);
+        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleNormal,QFont::Unstretched,true,true,0,f->fixed,ws,0);
+        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleItalic,QFont::Unstretched,true,true,0,f->fixed,ws,0);
+        registerFont(f->qtname,QLatin1String(""),QFont::Normal,QFont::StyleOblique,QFont::Unstretched,true,true,0,f->fixed,ws,0);
         ++f;
     }
 
@@ -734,4 +746,9 @@ QStringList QFontconfigDatabase::addApplicationFont(const QByteArray &fontData, 
     populateWith(set);
 
     return families;
+}
+
+void QFontconfigDatabase::removeApplicationFont(QStringList const& families)
+{
+    FcConfigAppFontClear(0);
 }

@@ -1601,6 +1601,9 @@ JSValue Interpreter::privateExecute(ExecutionFlag flag, RegisterFile* registerFi
         JSValue dividend = callFrame->r(vPC[2].u.operand).jsValue();
         JSValue divisor = callFrame->r(vPC[3].u.operand).jsValue();
 
+        /* The JIT ALWAYS uses fmod. If we do not, the test case int / (-4 % 2) returns
+           infinity instead of -Infinity.
+        /////
         if (dividend.isInt32() && divisor.isInt32() && divisor.asInt32() != 0) {
             JSValue result = jsNumber(callFrame, dividend.asInt32() % divisor.asInt32());
             ASSERT(result);
@@ -1608,6 +1611,7 @@ JSValue Interpreter::privateExecute(ExecutionFlag flag, RegisterFile* registerFi
             vPC += OPCODE_LENGTH(op_mod);
             NEXT_INSTRUCTION();
         }
+        */
 
         // Conversion to double must happen outside the call to fmod since the
         // order of argument evaluation is not guaranteed.

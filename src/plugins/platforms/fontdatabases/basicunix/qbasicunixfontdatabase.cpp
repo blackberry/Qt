@@ -317,7 +317,7 @@ QStringList QBasicUnixFontDatabase::addTTFile(const QByteArray &fontData, const 
 
         QFont::Stretch stretch = QFont::Unstretched;
 
-        registerFont(family,"",weight,style,stretch,true,true,0,writingSystems,fontFile);
+        registerFont(family,"",weight,style,stretch,true,true,0,false,writingSystems,fontFile);
 
         families.append(family);
 

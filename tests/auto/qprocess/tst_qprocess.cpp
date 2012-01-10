@@ -335,7 +335,7 @@ void tst_QProcess::crashTest()
     QSignalSpy spy(process, SIGNAL(error(QProcess::ProcessError)));
     QSignalSpy spy2(process, SIGNAL(finished(int, QProcess::ExitStatus)));
 
-    QVERIFY(process->waitForFinished(5000));
+    QVERIFY(process->waitForFinished(30000));
 
     QCOMPARE(spy.count(), 1);
     QCOMPARE(*static_cast<const QProcess::ProcessError *>(spy.at(0).at(0).constData()), QProcess::Crashed);

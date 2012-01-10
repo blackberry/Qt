@@ -90,6 +90,7 @@ public:
     virtual QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
     virtual QStringList fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const;
     virtual QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
+    virtual void removeApplicationFont(const QStringList &families);
     virtual void releaseHandle(void *handle);
 
     virtual QFontEngine *fontEngine(const QByteArray &fontData, qreal pixelSize, QFont::HintingPreference hintingPreference);
@@ -100,7 +101,7 @@ public:
     static void registerQPF2Font(const QByteArray &dataArray, void *handle);
     static void registerFont(const QString &familyname, const QString &foundryname, QFont::Weight weight,
                              QFont::Style style, QFont::Stretch stretch, bool antialiased, bool scalable, int pixelSize,
-                             const QSupportedWritingSystems &writingSystems, void *handle);
+                             bool fixed, const QSupportedWritingSystems &writingSystems, void *handle);
 };
 
 QT_END_NAMESPACE

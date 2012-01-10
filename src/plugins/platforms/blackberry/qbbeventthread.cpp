@@ -284,6 +284,63 @@ void QBBEventThread::injectKeyboardEvent(int flags, int sym, int modifiers, int 
     }
 }
 
+void QBBEventThread::injectPointerMoveEvent(int x, int y)
+{
+#if defined(QBBEVENTTHREAD_DEBUG)
+    qDebug() << "Injecting mouse event..." << x << y;
+#endif
+
+    QWidget *w = qApp->topLevelAt(x, y);
+    void *qnxWindow = w ? w->platformWindow() : 0;
+
+    // Generate enter and leave events as needed.
+    if (qnxWindow != mLastMouseWindow) {
+        QWidget* wOld = QWidget::find( (WId)mLastMouseWindow );
+
+        if (wOld) {
+            QWindowSystemInterface::handleLeaveEvent(wOld);
+#if defined(QBBEVENTTHREAD_DEBUG)
+            qDebug() << "QBB: Qt leave, w=" << wOld;
+#endif
+        }
+
+        if (w) {
+            QWindowSystemInterface::handleEnterEvent(w);
+#if defined(QBBEVENTTHREAD_DEBUG)
+            qDebug() << "QBB: Qt enter, w=" << w;
+#endif
+        }
+    }
+
+    mLastMouseWindow = qnxWindow;
+
+    // convert point to local coordinates
+    QPoint globalPoint(x, y);
+    QPoint localPoint(x, y);
+
+    if (w)
+        localPoint = QPoint(x - w->x(), y - w->y());
+
+    // Convert buttons.
+    Qt::MouseButtons buttons = mLastButtonState;
+
+    if (w) {
+        // Inject mouse event into Qt only if something has changed.
+        if (mLastGlobalMousePoint != globalPoint ||
+            mLastLocalMousePoint != localPoint ||
+            mLastButtonState != buttons) {
+            QWindowSystemInterface::handleMouseEvent(w, localPoint, globalPoint, buttons);
+#if defined(QBBEVENTTHREAD_DEBUG)
+            qDebug() << "QBB: Qt mouse, w=" << w << ", (" << localPoint.x() << "," << localPoint.y() << "), b=" << (int)buttons;
+#endif
+        }
+    }
+
+    mLastGlobalMousePoint = globalPoint;
+    mLastLocalMousePoint = localPoint;
+    mLastButtonState = buttons;
+}
+
 void QBBEventThread::handlePointerEvent(screen_event_t event)
 {
     errno = 0;

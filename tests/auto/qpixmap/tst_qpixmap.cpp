@@ -79,6 +79,11 @@
 #include <QX11Info>
 #endif
 
+#ifdef Q_WS_QPA
+# include "qplatformintegration_qpa.h"
+#include <private/qapplication_p.h>
+#endif
+
 //TESTED_CLASS=
 //TESTED_FILES=
 #if defined(Q_OS_SYMBIAN)
@@ -883,6 +888,8 @@ void tst_QPixmap::grabWidget()
 
 void tst_QPixmap::grabWindow()
 {
+// Cannot grab the desktop on playbook.
+#ifndef Q_OS_QNX
 #ifdef Q_OS_WINCE
     // We get out of memory, if the desktop itself is too big.
     if (QApplication::desktop()->width() <= 480)
@@ -910,6 +917,7 @@ void tst_QPixmap::grabWindow()
     QPixmap grabWindowPixmap = QPixmap::grabWindow(child.winId());
     QPixmap grabWidgetPixmap = QPixmap::grabWidget(&child);
     lenientCompare(grabWindowPixmap, grabWidgetPixmap);
+#endif
 }
 
 void tst_QPixmap::isNull()
@@ -1346,6 +1354,12 @@ void tst_QPixmap::onlyNullPixmapsOutsideGuiThread()
     public:
         void run()
         {
+        // Must check capability on Q_WS_QPA
+#if defined (Q_WS_QPA)
+        if (QApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::ThreadedPixmaps)) {
+            return;
+        }
+#endif
             QTest::ignoreMessage(QtWarningMsg,
                                  "QPixmap: It is not safe to use pixmaps outside the GUI thread");
             QPixmap pixmap;

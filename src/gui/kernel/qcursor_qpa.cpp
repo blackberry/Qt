@@ -42,6 +42,8 @@
 #include <qcursor.h>
 #include <private/qcursor_p.h>
 #include <qbitmap.h>
+#include "qplatformintegration_qpa.h"
+#include "private/qapplication_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -122,6 +124,11 @@ void QCursor::setPos(int x, int y)
     //
     if (pos() == QPoint(x, y))
         return;
+
+    QPlatformIntegration *pi = QApplicationPrivate::platformIntegration();
+
+    if (pi)
+        pi->setCursorPos(x, y);
 }
 
 QT_END_NAMESPACE

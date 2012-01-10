@@ -25,6 +25,7 @@ QT_BEGIN_NAMESPACE
 
 class QBBEventThread;
 class QBBNavigatorThread;
+class QBBLocaleThread;
 
 class QBBIntegration : public QPlatformIntegration
 {
@@ -40,6 +41,7 @@ public:
 
     virtual QList<QPlatformScreen *> screens() const;
     virtual void moveToScreen(QWidget *window, int screen);
+    virtual void setCursorPos(int x, int y);
 
     virtual QPlatformFontDatabase *fontDatabase() const { return mFontDb; }
 
@@ -53,6 +55,7 @@ private:
     screen_context_t mContext;
     QBBEventThread *mEventThread;
     QBBNavigatorThread *mNavigatorThread;
+    QBBLocaleThread *mLocaleThread;
     QPlatformFontDatabase *mFontDb;
     bool mPaintUsingOpenGL;
 };

@@ -29,6 +29,7 @@
 #include "qgenericunixfontdatabase.h"
 #include "qbbclipboard.h"
 #include "qbbglcontext.h"
+#include "qbblocalethread.h"
 
 #include "qapplication.h"
 #include <QtGui/private/qpixmap_raster_p.h>
@@ -73,6 +74,10 @@ QBBIntegration::QBBIntegration() :
     mNavigatorThread = new QBBNavigatorThread(*QBBScreen::primaryDisplay());
     mNavigatorThread->start();
 
+    // Start the locale change monitoring thread.
+    mLocaleThread = new QBBLocaleThread();
+    mLocaleThread->start();
+
     // create/start the keyboard class.
     QBBVirtualKeyboard::instance();
 
@@ -87,6 +92,9 @@ QBBIntegration::~QBBIntegration()
 #endif
     // destroy the keyboard class.
     QBBVirtualKeyboard::destroy();
+
+    // stop/destroy the locale thread.
+    delete mLocaleThread;
 
     // stop/destroy event thread
     delete mEventThread;
@@ -175,5 +183,10 @@ QPlatformClipboard *QBBIntegration::clipboard() const
     return clipboard;
 }
 #endif
+
+void QBBIntegration::setCursorPos(int x, int y)
+{
+    mEventThread->injectPointerMoveEvent(x, y);
+}
 
 QT_END_NAMESPACE

@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 
 extern void qt_registerFont(const QString &familyname, const QString &foundryname, int weight,
                                          QFont::Style style, int stretch, bool antialiased,bool scalable, int pixelSize,
-                                         const QSupportedWritingSystems &writingSystems, void *hanlde);
+                                         bool fixed, const QSupportedWritingSystems &writingSystems, void *hanlde);
 
 /*!
     \fn void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *)
@@ -88,7 +88,7 @@ void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *
                 }
             }
             QFont::Stretch stretch = QFont::Unstretched;
-            registerFont(fontName,QString(),fontWeight,fontStyle,stretch,true,false,pixelSize,writingSystems,handle);
+            registerFont(fontName,QString(),fontWeight,fontStyle,stretch,true,false,pixelSize,false,writingSystems,handle);
         }
     } else {
         qDebug() << "header verification of QPF2 font failed. maybe it is corrupt?";
@@ -123,11 +123,11 @@ void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *
 */
 void QPlatformFontDatabase::registerFont(const QString &familyname, const QString &foundryname, QFont::Weight weight,
                                          QFont::Style style, QFont::Stretch stretch, bool antialiased, bool scalable, int pixelSize,
-                                         const QSupportedWritingSystems &writingSystems, void *usrPtr)
+                                         bool fixed, const QSupportedWritingSystems &writingSystems, void *usrPtr)
 {
     if (scalable)
         pixelSize = 0;
-    qt_registerFont(familyname,foundryname,weight,style,stretch,antialiased,scalable,pixelSize,writingSystems,usrPtr);
+    qt_registerFont(familyname,foundryname,weight,style,stretch,antialiased,scalable,pixelSize,fixed,writingSystems,usrPtr);
 }
 
 class QWritingSystemsPrivate
@@ -313,6 +313,14 @@ QStringList QPlatformFontDatabase::addApplicationFont(const QByteArray &fontData
     qWarning("This plugin does not support application fonts");
     return QStringList();
 }
+
+void QPlatformFontDatabase::removeApplicationFont(const QStringList &families)
+{
+    Q_UNUSED(families);
+
+    qWarning("This plugin does not support application fonts");
+}
+
 
 /*!
     Releases the font handle and deletes any associated data loaded from a file.

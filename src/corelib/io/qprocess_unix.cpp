@@ -877,7 +877,7 @@ pid_t QProcessPrivate::spawnChild(const char *workingDir, char **argv, char **en
 
     if (childPid != -1) {
         q->setProcessState(QProcess::Running);
-        QMetaObject::invokeMethod(q, "_q_startupNotification", Qt::QueuedConnection);
+        _q_startupNotification();
     }
 
     return childPid;

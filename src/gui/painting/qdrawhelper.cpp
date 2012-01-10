@@ -1441,7 +1441,10 @@ public:
             }
         } else {
             while (buffer < end) {
-                *buffer++ = qt_gradient_pixel(&data->gradient, qSqrt(det) - b);
+                if(det > 0)
+                    *buffer++ = qt_gradient_pixel(&data->gradient, qSqrt(det) - b);
+                else
+                    *buffer++ = qt_gradient_pixel(&data->gradient, 0 - b);
 
                 det += delta_det;
                 delta_det += delta_delta_det;

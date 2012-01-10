@@ -35,6 +35,7 @@ public:
     virtual ~QBBEventThread();
 
     static void injectKeyboardEvent(int flags, int sym, int mod, int scan, int cap);
+    void injectPointerMoveEvent(int x, int y);
 
 protected:
     virtual void run();

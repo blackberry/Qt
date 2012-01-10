@@ -57,6 +57,7 @@ public:
     QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
     QStringList fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const;
     QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
+    void removeApplicationFont(QStringList const& families);
 
 private:
     void populateWith(FcFontSet *fonts);

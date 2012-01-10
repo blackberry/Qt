@@ -16,7 +16,8 @@ SOURCES =   main.cpp \
             qbbwindow.cpp \
             qbbrasterwindowsurface.cpp \
             qbbvirtualkeyboard.cpp \
-            qbbclipboard.cpp
+            qbbclipboard.cpp \
+            qbblocalethread.cpp
 
 HEADERS =   qbbbuffer.h \
             qbbeventthread.h \
@@ -29,7 +30,8 @@ HEADERS =   qbbbuffer.h \
             qbbwindow.h \
             qbbrasterwindowsurface.h \
             qbbvirtualkeyboard.h \
-            qbbclipboard.h
+            qbbclipboard.h \
+            qbblocalethread.h
 
 QMAKE_CXXFLAGS += -I./private
 

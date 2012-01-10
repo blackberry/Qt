@@ -84,6 +84,7 @@ public:
     virtual void moveToScreen(QWidget *window, int screen) {Q_UNUSED(window); Q_UNUSED(screen);}
     virtual bool isVirtualDesktop() { return false; }
     virtual QPixmap grabWindow(WId window, int x, int y, int width, int height) const;
+    virtual void setCursorPos(int x, int y);
 
 //Deeper window system integrations
     virtual QPlatformFontDatabase *fontDatabase() const;

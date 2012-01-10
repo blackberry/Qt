@@ -108,6 +108,7 @@ void QCoreTextFontDatabase::populateFontDatabase()
                      true,
                      true,
                      pixelSize,
+                     false, /* TODO: Set fixed properly */
                      supportedWritingSystems,
                      0);
     }

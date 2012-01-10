@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 Q_GUI_EXPORT  void qt_registerFont(const QString &familyName, const QString &foundryname, int weight,
                                    QFont::Style style, int stretch, bool antialiased, bool scalable, int pixelSize,
-                                   const QSupportedWritingSystems &writingSystems, void *handle)
+                                   bool fixed, const QSupportedWritingSystems &writingSystems, void *handle)
 {
     QFontDatabasePrivate *d = privateDb();
     //    qDebug() << "Adding font" << familyname << weight << italic << pixelSize << file << fileIndex << antialiased;
@@ -76,6 +76,7 @@ Q_GUI_EXPORT  void qt_registerFont(const QString &familyName, const QString &fou
         QtFontStyle *fontStyle = foundry->style(styleKey, QString(), true);
         fontStyle->smoothScalable = scalable;
         fontStyle->antialiased = antialiased;
+        f->fixedPitch = fixed;
         QtFontSize *size = fontStyle->pixelSize(pixelSize?pixelSize:SMOOTH_SCALABLE, true);
         size->handle = handle;
 }
@@ -217,6 +218,8 @@ bool QFontDatabase::removeApplicationFont(int handle)
     QFontDatabasePrivate *db = privateDb();
     if (handle < 0 || handle >= db->applicationFonts.count())
         return false;
+
+    QApplicationPrivate::platformIntegration()->fontDatabase()->removeApplicationFont(db->applicationFonts[handle].families);
 
     db->applicationFonts[handle] = QFontDatabasePrivate::ApplicationFont();
 

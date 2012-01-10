@@ -417,8 +417,9 @@ JSValue JSC_HOST_CALL numberProtoFuncToPrecision(ExecState* exec, JSObject*, JSV
             n = floor(x / tens);
         }
 
-        if (fabs((n + 1.0) * tens - x) <= fabs(n * tens - x))
-            ++n;
+        // Should not do rounding up.
+        // if (fabs((n + 1.0) * tens - x) <= fabs(n * tens - x))
+        //    ++n;
         // maintain n < 10^(precision)
         if (n >= intPow10(precision)) {
             n /= 10.0;

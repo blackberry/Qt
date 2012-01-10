@@ -56,6 +56,12 @@ QPixmap QPlatformIntegration::grabWindow(WId window, int x, int y, int width, in
     return QPixmap();
 }
 
+void QPlatformIntegration::setCursorPos(int x, int y)
+{
+    Q_UNUSED(x);
+    Q_UNUSED(y);
+}
+
 /*!
     Factory function for the eventloop integration interface.
 
