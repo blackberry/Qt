@@ -134,8 +134,7 @@ QBBScreen::QBBScreen(screen_context_t context, screen_display_t display)
     }
 
     errno = 0;
-    // Giving nbuffers=0 tells screen this is a bufferless window
-    result = screen_create_window_buffers(mAppWindow, 0);
+    result = screen_create_window_buffers(mAppWindow, 1);
     if (result != 0) {
         qFatal("QBBScreen: failed to create bufferless window, errno=%d", errno);
     }
@@ -207,6 +206,13 @@ QBBScreen::QBBScreen(screen_context_t context, screen_display_t display)
     result = screen_get_window_property_pv(mAppWindow, SCREEN_PROPERTY_RENDER_BUFFERS, (void **)&buffer);
     if (result != 0) {
         qFatal("QBBScreen: failed to query window buffer, errno=%d", errno);
+    }
+
+    errno = 0;
+    int dirtyRect[] = {0, 0, 1, 1};
+    result = screen_post_window(mAppWindow, buffer, 1, dirtyRect, 0);
+    if (result != 0) {
+        qFatal("QBB: failed to post window buffer, errno=%d", errno);
     }
 }
 
@@ -421,8 +427,28 @@ void QBBScreen::updateHierarchy()
 void QBBScreen::onWindowPost(QBBWindow* window)
 {
     Q_UNUSED(window)
-    // Our application window is bufferless and doesn't need to be posted.
-    return;
+
+    // post app window (so navigator will show it) after first child window
+    // has posted; this only needs to happen once as the app window's content
+    // never changes
+    if (!mPosted) {
+
+        errno = 0;
+        screen_buffer_t buffer;
+        int result = screen_get_window_property_pv(mAppWindow, SCREEN_PROPERTY_RENDER_BUFFERS, (void **)&buffer);
+        if (result != 0) {
+            qFatal("QBB: failed to query window buffer, errno=%d", errno);
+        }
+
+        errno = 0;
+        int dirtyRect[] = {0, 0, 1, 1};
+        result = screen_post_window(mAppWindow, buffer, 1, dirtyRect, 0);
+        if (result != 0) {
+            qFatal("QBB: failed to post window buffer, errno=%d", errno);
+        }
+
+        mPosted = true;
+    }
 }
 
 QT_END_NAMESPACE
