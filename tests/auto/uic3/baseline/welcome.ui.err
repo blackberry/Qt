@@ -1,2 +1,0 @@
-uic3: property `paletteBackgroundColor' for widget `Welcome' of type `QWidget' is not supported. Line: 3 Column: 24
-uic3: flag 'WordBreak' for widget 'QLabel' is not supported
