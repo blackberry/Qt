@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<qnx xmlns="http://www.qnx.com/schemas/application/1.0">
+    <id>com.example.SocketClient</id>
+    <name>SocketClient</name>
+    <versionNumber>1.0.0</versionNumber>
+    <description>DESCRIPTION</description>
+
+    <initialWindow>
+        <systemChrome>none</systemChrome>
+        <transparent>false</transparent>
+        <autoOrients>true</autoOrients>
+        <aspectRatio>landscape</aspectRatio>
+    </initialWindow>
+    <publisher>PUBLISHER</publisher>
+    <copyright>COPYRIGHT</copyright>
+    <env var="QML_IMPORT_PATH" value="app/native/imports:/usr/lib/qt4/imports"/>
+    <env var="QT_PLUGIN_PATH" value="app/native/plugins:/usr/lib/qt4/plugins"/>
+    <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib/"/>
+    <arg>-style</arg>
+    <arg>qnxlight</arg>
+
+    <action system="true">run_native</action>
+
+    <!-- SocketClient should point to the project binary, path can be relative -->
+    <asset entry="true" path="SocketClient" type="Qnx/Elf">SocketClient</asset>
+    <asset path="%SRC_DIR%/qml">qml</asset>
+</qnx>
