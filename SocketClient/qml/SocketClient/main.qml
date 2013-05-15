@@ -31,12 +31,14 @@ Rectangle {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            flag ? socket.writeData("Swicth on!") : socket.writeData("Swicth off!")
+//            flag ? socket.writeData("Swicth on!") : socket.writeData("Swicth off!")
+            socket.sendHttpRequest();
             flag = !flag
         }
     }
 
     Component.onCompleted: {
-        socket.connectToHost("Mehdis-MacBook-Pro.local", 50001);
+//        socket.connectToHost("10.231.48.73", 50001);
+        socket.connectToHost("Mehdis-MacBook-pro.local", 50001);
     }
 }
