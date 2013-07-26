@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<qnx xmlns="http://www.qnx.com/schemas/application/1.0">
+    <id>com.example.ColoredItems</id>
+    <name>ColoredItems</name>
+    <versionNumber>1.0.0</versionNumber>
+    <description>DESCRIPTION</description>
+    <initialWindow>
+        <aspectRatio>landscape</aspectRatio>
+        <autoOrients>false</autoOrients>
+        <systemChrome>none</systemChrome>
+        <transparent>false</transparent>
+    </initialWindow>
+    <author>PUBLISHER</author>
+    <copyright>COPYRIGHT</copyright>
+    <env value="app/native/imports:/usr/lib/qt4/imports" var="QML_IMPORT_PATH"/>
+    <env value="app/native/plugins:/usr/lib/qt4/plugins" var="QT_PLUGIN_PATH"/>
+    <env value="app/native/lib:/usr/lib/qt4/lib/" var="LD_LIBRARY_PATH"/>
+    <arg>-style</arg>
+    <arg>qnxlight</arg>
+    <action system="true">run_native</action>
+    <!-- ColoredItems should point to the project binary, path can be relative -->
+    <asset path="ColoredItems" type="Qnx/Elf" entry="true">ColoredItems</asset>
+</qnx>
