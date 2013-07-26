@@ -1,1 +1,17 @@
-REPOSITORY_MOVED
+Qt on BlackBerry 10 community repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This repo holds various community maintained code using Qt on BlackBerry 10. This includes:
+	* samples specializing on the use of Qt on BlackBerry 10
+	* open source apps using Qt C++ GUI and Qt Quick, see https://github.com/blackberry/Cascades-Community-Samples for Cascades UI samples
+	* screen shots posted as pictures on http://qt-project.org/wiki/ since the latter does not allow adding images
+
+This repo does not include:
+	* actual source code of Qt used on BlackBerry 10. It is hosted on http://qt-project.org/
+	* other random Qt projects which have no relevance to Qt on BlackBerry 10
+
+Thanks!
+
+--
+Qt Team in BlackBerry
+
